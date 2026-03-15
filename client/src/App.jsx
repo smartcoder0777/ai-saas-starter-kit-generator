@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { generateBoilerplate, generateFullRepo, downloadZip } from './api';
 import ResultTabs from './ResultTabs';
 
@@ -14,28 +14,61 @@ const FULL_REPO_TABS = [
   { id: 'repo', label: 'Repo files', key: 'repo' },
 ];
 
+const LOADING_STAGES = [
+  'Analyzing your idea…',
+  'Designing schema & API…',
+  'Writing repo (parallel)…',
+];
+
 export default function App() {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0);
   const [error, setError] = useState(null);
   const [generated, setGenerated] = useState(null);
   const [isFullRepo, setIsFullRepo] = useState(false);
+  const abortRef = useRef(null);
+  const stageIntervalRef = useRef(null);
+
+  useEffect(() => {
+    if (!loading || !isFullRepo) return;
+    setLoadingStage(0);
+    stageIntervalRef.current = setInterval(() => {
+      setLoadingStage((s) => Math.min(s + 1, LOADING_STAGES.length - 1));
+    }, 10000);
+    return () => {
+      if (stageIntervalRef.current) clearInterval(stageIntervalRef.current);
+    };
+  }, [loading, isFullRepo]);
 
   const handleGenerate = async () => {
     if (!description.trim()) return;
     setError(null);
     setGenerated(null);
     setLoading(true);
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
     try {
       const result = isFullRepo
-        ? await generateFullRepo(description.trim())
+        ? await generateFullRepo(description.trim(), { signal })
         : await generateBoilerplate(description.trim());
       setGenerated(result);
     } catch (e) {
-      setError(e.message || 'Generation failed');
+      if (e.name === 'AbortError') {
+        setError('Cancelled');
+      } else {
+        setError(e.message || 'Generation failed');
+      }
     } finally {
       setLoading(false);
+      if (stageIntervalRef.current) clearInterval(stageIntervalRef.current);
+      abortRef.current = null;
     }
+  };
+
+  const handleCancel = () => {
+    if (abortRef.current) abortRef.current.abort();
   };
 
   const handleDownloadZip = async () => {
@@ -88,8 +121,20 @@ export default function App() {
               disabled={loading || !description.trim()}
               className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:pointer-events-none text-white font-medium transition-colors"
             >
-              {loading ? 'Generating…' : isFullRepo ? 'Generate full repo' : 'Generate starter kit'}
+              {loading ? (isFullRepo ? LOADING_STAGES[loadingStage] : 'Generating…') : isFullRepo ? 'Generate full repo' : 'Generate starter kit'}
             </button>
+            {loading && isFullRepo && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <span className="text-slate-500 text-sm">Usually 25–40 seconds</span>
+              </>
+            )}
             {generated && (
               <button
                 onClick={handleDownloadZip}

@@ -11,11 +11,12 @@ export async function generateBoilerplate(description) {
   return data;
 }
 
-export async function generateFullRepo(description) {
+export async function generateFullRepo(description, { signal } = {}) {
   const res = await fetch(`${API}/generate-repo`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ description }),
+    signal,
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `Request failed: ${res.status}`);
