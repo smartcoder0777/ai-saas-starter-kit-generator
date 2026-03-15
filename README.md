@@ -1,11 +1,15 @@
 # AI SaaS Starter Kit Generator
 
-Generate a full SaaS starter kit from a short description. Enter something like **"Build SaaS for restaurant booking"** and get:
+Generate a full SaaS starter kit from a short description. Enter something like **"AI SaaS for restaurant booking"** and get:
 
-- **Database schema** (Prisma, PostgreSQL)
-- **API endpoints** (REST)
-- **UI pages** (screens and flows)
-- **Project structure** (folders and files)
+- **Quick spec:** Database schema (Prisma), API endpoints, UI pages, project structure
+- **Full repo:** A complete GitHub-ready project you can download as a ZIP:
+  - `/frontend` — React (Vite) + Tailwind, components and pages
+  - `/backend` — Node (Express), API routes
+  - Database schema (Prisma)
+  - Working **authentication** placeholder (login/register)
+  - Example **AI feature** (e.g. OpenAI-backed route)
+  - **README** with setup and run instructions
 
 Stack: **React (Vite)** + **Tailwind CSS** + **Node.js**.
 
@@ -53,10 +57,11 @@ This starts both server and client.
 ## Usage
 
 1. Open **http://localhost:5173**.
-2. Type your product idea (e.g. *"Build SaaS for restaurant booking"*).
-3. Click **Generate starter kit**.
-4. Review **Database schema**, **API endpoints**, **UI pages**, and **Project structure** in the tabs.
-5. Click **Download as ZIP** to get a zip with the generated docs and schema.
+2. Type your product idea (e.g. *"AI SaaS for restaurant booking"*).
+3. Choose **Quick** (spec only) or check **Full repo** for a complete project (frontend, backend, auth, AI example).
+4. Click **Generate starter kit** or **Generate full repo**.
+5. Review the tabs (schema, endpoints, pages, structure; for full repo, also **Repo files** to browse generated files).
+6. Click **Download as ZIP** — for full repo you get a folder ready to push to GitHub.
 
 ---
 
@@ -97,6 +102,10 @@ This starts both server and client.
 - **POST /api/generate**  
   Body: `{ "description": "Build SaaS for restaurant booking" }`  
   Returns: `{ databaseSchema, apiEndpoints, uiPages, projectStructure }`
+
+- **POST /api/generate-repo**  
+  Body: `{ "description": "AI SaaS for restaurant booking" }`  
+  Returns: same fields plus `files: [{ path, content }, ...]` (full frontend/backend, auth, AI example, README).
 
 - **POST /api/download-zip**  
   Body: `{ "description": "...", "generated": { databaseSchema, apiEndpoints, uiPages, projectStructure } }`  

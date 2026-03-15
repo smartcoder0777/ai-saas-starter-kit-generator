@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import { generateBoilerplate } from './generate.js';
+import { generateFullRepo } from './generateRepo.js';
 import { buildZip } from './zip.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,6 +30,22 @@ app.post('/api/generate', async (req, res) => {
   } catch (err) {
     console.error('Generate error:', err);
     const message = err.message || 'Generation failed';
+    const status = err.statusCode || 500;
+    return res.status(status).json({ error: message });
+  }
+});
+
+app.post('/api/generate-repo', async (req, res) => {
+  const { description } = req.body;
+  if (!description || typeof description !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid "description" in body' });
+  }
+  try {
+    const result = await generateFullRepo(description.trim());
+    return res.json(result);
+  } catch (err) {
+    console.error('Generate-repo error:', err);
+    const message = err.message || 'Full repo generation failed';
     const status = err.statusCode || 500;
     return res.status(status).json({ error: message });
   }

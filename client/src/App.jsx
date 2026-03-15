@@ -1,12 +1,17 @@
 import { useState } from 'react';
-import { generateBoilerplate, downloadZip } from './api';
+import { generateBoilerplate, generateFullRepo, downloadZip } from './api';
 import ResultTabs from './ResultTabs';
 
-const TABS = [
+const QUICK_TABS = [
   { id: 'schema', label: 'Database schema', key: 'databaseSchema' },
   { id: 'endpoints', label: 'API endpoints', key: 'apiEndpoints' },
   { id: 'pages', label: 'UI pages', key: 'uiPages' },
   { id: 'structure', label: 'Project structure', key: 'projectStructure' },
+];
+
+const FULL_REPO_TABS = [
+  ...QUICK_TABS,
+  { id: 'repo', label: 'Repo files', key: 'repo' },
 ];
 
 export default function App() {
@@ -14,6 +19,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [generated, setGenerated] = useState(null);
+  const [isFullRepo, setIsFullRepo] = useState(false);
 
   const handleGenerate = async () => {
     if (!description.trim()) return;
@@ -21,7 +27,9 @@ export default function App() {
     setGenerated(null);
     setLoading(true);
     try {
-      const result = await generateBoilerplate(description.trim());
+      const result = isFullRepo
+        ? await generateFullRepo(description.trim())
+        : await generateBoilerplate(description.trim());
       setGenerated(result);
     } catch (e) {
       setError(e.message || 'Generation failed');
@@ -47,7 +55,7 @@ export default function App() {
             AI SaaS Starter Kit Generator
           </h1>
           <p className="text-slate-400 text-sm mt-0.5">
-            Describe your SaaS idea — get database schema, API endpoints, UI pages & project structure
+            Describe your SaaS idea — get a quick spec or a full GitHub-ready repo (frontend, backend, auth, AI example)
           </p>
         </div>
       </header>
@@ -65,12 +73,22 @@ export default function App() {
             disabled={loading}
           />
           <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-slate-400 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isFullRepo}
+                onChange={(e) => setIsFullRepo(e.target.checked)}
+                disabled={loading}
+                className="rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500"
+              />
+              Full repo (frontend + backend + auth + AI example)
+            </label>
             <button
               onClick={handleGenerate}
               disabled={loading || !description.trim()}
               className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:pointer-events-none text-white font-medium transition-colors"
             >
-              {loading ? 'Generating…' : 'Generate starter kit'}
+              {loading ? 'Generating…' : isFullRepo ? 'Generate full repo' : 'Generate starter kit'}
             </button>
             {generated && (
               <button
@@ -91,7 +109,7 @@ export default function App() {
 
         {generated && (
           <div className="mt-8">
-            <ResultTabs tabs={TABS} data={generated} />
+            <ResultTabs tabs={generated.files?.length ? FULL_REPO_TABS : QUICK_TABS} data={generated} />
           </div>
         )}
       </main>
