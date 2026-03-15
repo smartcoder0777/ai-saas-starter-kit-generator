@@ -7,7 +7,10 @@ import { buildZip } from './zip.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3001', 'http://127.0.0.1:3001'],
+  credentials: false,
+}));
 app.use(express.json());
 
 app.post('/api/generate', async (req, res) => {
