@@ -1,14 +1,19 @@
 import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import { generateBoilerplate } from './generate.js';
 import { buildZip } from './zip.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isProduction = process.env.NODE_ENV === 'production';
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3001', 'http://127.0.0.1:3001'],
+  origin: isProduction ? true : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3001', 'http://127.0.0.1:3001'],
   credentials: false,
 }));
 app.use(express.json());
@@ -47,6 +52,15 @@ app.post('/api/download-zip', async (req, res) => {
 });
 
 app.get('/api/health', (_, res) => res.json({ ok: true }));
+
+// Serve built client in production (single deployment)
+if (isProduction) {
+  const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
+  app.use(express.static(clientDist));
+  app.get('*', (_, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

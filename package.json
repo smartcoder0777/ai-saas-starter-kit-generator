@@ -1,6 +1,7 @@
 {
   "name": "ai-saas-starter-kit-generator",
   "private": true,
+  "type": "module",
   "scripts": {
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
@@ -8,6 +9,10 @@
     "dev:client": "npm run dev --prefix client",
     "build": "npm run build --prefix client",
     "start": "npm run start --prefix server"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "openai": "^4.52.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

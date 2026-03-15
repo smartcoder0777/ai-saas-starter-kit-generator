@@ -104,3 +104,56 @@ This starts both server and client.
 
 - **GET /api/health**  
   Returns: `{ "ok": true }`.
+
+---
+
+## Deploy (single service)
+
+The app is set up to run as **one service**: the Node server serves the built React app and the API. No separate frontend host or CORS config needed.
+
+**Build (from repo root):**
+```bash
+npm run install:all
+npm run build
+```
+
+**Run in production:**
+```bash
+NODE_ENV=production npm run start
+```
+Server listens on `PORT` and serves the UI and `/api` from the same origin.
+
+### Render
+
+1. New **Web Service**, connect repo.
+2. **Root directory:** leave default (repo root).
+3. **Build command:** `npm run install:all && npm run build`
+4. **Start command:** `NODE_ENV=production npm run start`
+5. **Environment:** add `OPENAI_API_KEY` (required). Optionally `PORT` (Render sets it automatically).
+6. Deploy.
+
+### Railway
+
+1. New project from repo.
+2. **Build command:** `npm run install:all && npm run build`
+3. **Start command:** `NODE_ENV=production npm run start`
+4. **Variables:** add `OPENAI_API_KEY`. Railway sets `PORT`.
+5. Deploy.
+
+### Vercel
+
+Uses **serverless functions** for the API (no long-running Node server). Frontend and `/api` are on the same domain.
+
+1. Import the repo in [Vercel](https://vercel.com) (GitHub/GitLab/Bitbucket).
+2. **Root Directory:** leave default (repo root).
+3. **Build & Output:** `vercel.json` is set: build runs `npm run install:all && npm run build`, output is `client/dist`. API routes in `api/` are picked up automatically.
+4. **Environment variables:** in the project dashboard, add `OPENAI_API_KEY` (required).
+5. Deploy. The app URL will serve the UI; `/api/generate` and `/api/download-zip` run as serverless functions.
+
+**Note:** Serverless has a ~10s timeout on the Hobby plan (60s on Pro). Generation usually finishes within that; if you hit limits, consider Render/Railway for a long-running server.
+
+### Other hosts (Fly.io, Heroku, etc.)
+
+- Install deps and build client from root: `npm run install:all && npm run build`
+- Start with `NODE_ENV=production npm run start` (from root).
+- Set `OPENAI_API_KEY` and `PORT` (if the host doesn’t set it).
